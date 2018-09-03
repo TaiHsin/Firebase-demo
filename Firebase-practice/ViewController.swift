@@ -79,13 +79,17 @@ class ViewController: UIViewController {
         
         ref = Database.database().reference()
         
-        searchUser(byEmail: "peterlee0466@gmail.com")
-        
-        //        updateData()
+//        searchUser(byEmail: "peterlee0466@gmail.com")
+//        updateData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        cornerRadius()
+    }
+    
+    func cornerRadius() {
         createButton.layer.cornerRadius = 5
         articleContent.layer.cornerRadius = 5
         postArticleButton.layer.cornerRadius = 5
@@ -109,12 +113,14 @@ class ViewController: UIViewController {
     // MARK: - Search tag articles
     
     func getTagData(byTag tag: String) {
-        ref.child("posts").queryOrdered(byChild: "表特").queryEqual(toValue: true).observeSingleEvent(of: .value) { (snapshot) in
-            
+        ref.child("posts").queryOrdered(byChild: "tag").queryEqual(toValue: tag).observeSingleEvent(of: .value) { (snapshot) in
+        
             let value = snapshot.value as? NSDictionary
             print(value)
         }
     }
+    
+    // MARK: - Read data at certain child
     
     func readData() {
         ref.child("users").child("Nia").observeSingleEvent(of: .value) { (snapshot) in
@@ -127,9 +133,10 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: - Search data by some value or child key
+    
     func searchUser(byEmail email: String) {
-        
-        ref.child("posts").queryOrdered(byChild: "表特").queryEqual(toValue: true).observeSingleEvent(of: .value) { (snapshot) in
+        ref.child("posts").queryOrdered(byChild: "email").queryEqual(toValue: true).observeSingleEvent(of: .value) { (snapshot) in
             let value = snapshot.value as? NSDictionary
             //            guard let valueKey = value?.allKeys[0] as? String else { return }
             //            let userValue = value?[valueKey] as? NSDictionary
@@ -138,16 +145,18 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: - Use update to post new article
+    
     func postArticle(title title: String, content content: String, tag tag: String, time time: String) {
         let key = ref.child("posts").childByAutoId().key
         guard let userId = UserManager.shared.getUserId() else { return }
         guard let userName = UserManager.shared.getUserName() else { return }
-        let createdTime = ServerValue.timestamp()
-        print(createdTime)
         
-        let post = ["article_title": title,
-                    "article_content": content,
-                    "article_tag": tag,
+        let createdTime = ServerValue.timestamp()
+//        print(createdTime)
+        let post = ["title": title,
+                    "content": content,
+                    "tag": tag,
                     "author_id": userId,
                     "author_name": userName,
                     "created_time": time ] as [String : Any]
@@ -155,8 +164,6 @@ class ViewController: UIViewController {
         
         ref.updateChildValues(childUpdates)
     }
-    
-    
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
