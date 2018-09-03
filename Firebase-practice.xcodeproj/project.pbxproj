@@ -14,6 +14,7 @@
 		9D0F753D213CDD09003FB22F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D0F753C213CDD09003FB22F /* Assets.xcassets */; };
 		9D0F7540213CDD09003FB22F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9D0F753E213CDD09003FB22F /* LaunchScreen.storyboard */; };
 		9D0F7548213CDEBB003FB22F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9D0F7547213CDEBB003FB22F /* GoogleService-Info.plist */; };
+		9D87A997213D310900AA4A42 /* UserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D87A996213D310900AA4A42 /* UserManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		9D0F753F213CDD09003FB22F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9D0F7541213CDD09003FB22F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9D0F7547213CDEBB003FB22F /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		9D87A996213D310900AA4A42 /* UserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManager.swift; sourceTree = "<group>"; };
 		A2C1528FEFF8F837F4F6874C /* Pods-Firebase-practice.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Firebase-practice.release.xcconfig"; path = "Pods/Target Support Files/Pods-Firebase-practice/Pods-Firebase-practice.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,6 +89,7 @@
 				9D0F753E213CDD09003FB22F /* LaunchScreen.storyboard */,
 				9D0F7541213CDD09003FB22F /* Info.plist */,
 				9D0F7547213CDEBB003FB22F /* GoogleService-Info.plist */,
+				9D87A996213D310900AA4A42 /* UserManager.swift */,
 			);
 			path = "Firebase-practice";
 			sourceTree = "<group>";
@@ -208,6 +211,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9D87A997213D310900AA4A42 /* UserManager.swift in Sources */,
 				9D0F7538213CDD07003FB22F /* ViewController.swift in Sources */,
 				9D0F7536213CDD07003FB22F /* AppDelegate.swift in Sources */,
 			);
