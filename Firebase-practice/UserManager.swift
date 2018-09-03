@@ -15,6 +15,16 @@ class UserManager {
         let userId = UserDefaults.standard.string(forKey: "userId")
         return userId
     }
+    
+    func getUserName() -> String? {
+        let userName = UserDefaults.standard.string(forKey: "userName")
+        return userName
+    }
+    
+    func getUserEmail() -> String? {
+        let userEmail = UserDefaults.standard.string(forKey: "userEmail")
+        return userEmail
+    }
 }
 
 

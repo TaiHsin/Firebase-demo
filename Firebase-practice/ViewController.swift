@@ -14,7 +14,7 @@ class ViewController: UIViewController {
     
     var ref: DatabaseReference!
     
-   
+    
     @IBOutlet weak var userName: UITextField!
     @IBOutlet weak var userEmail: UITextField!
     @IBOutlet weak var createButton: UIButton!
@@ -41,6 +41,25 @@ class ViewController: UIViewController {
     }
     
     @IBAction func postArticle(_ sender: Any) {
+        guard let title = articleTitle.text else { return }
+        guard let content = articleContent.text else { return }
+        
+        switch segmentControl.selectedSegmentIndex {
+        case 0:
+            postArticle(title: title, content: content, tag: "表特", time: "20180904")
+        case 1:
+            postArticle(title: title, content: content, tag: "八卦", time: "20180904")
+        case 2:
+            postArticle(title: title, content: content, tag: "就可", time: "20180904")
+        case 3:
+            postArticle(title: title, content: content, tag: "生活", time: "20180904")
+        default: break
+        }
+        
+        // MARK: - Reset article title and content
+        
+        articleTitle.text = ""
+        articleContent.text = ""
     }
     
     @IBAction func addFriends(_ sender: Any) {
@@ -59,10 +78,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         ref = Database.database().reference()
-
+        
         searchUser(byEmail: "peterlee0466@gmail.com")
         
-        updateData()
+        //        updateData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -78,9 +97,13 @@ class ViewController: UIViewController {
     
     func createUser() {
         let uid = ref.child("users").childByAutoId().key
-        print(uid)
-        UserDefaults.standard.set(uid, forKey: "userId")
         self.ref.child("users").child(uid).setValue(["email": userEmail.text , "name": userName.text])
+        
+        // Mark: - Save userdata to singleton
+        
+        UserDefaults.standard.set(uid, forKey: "userId")
+        UserDefaults.standard.set(userName.text, forKey: "userName")
+        UserDefaults.standard.set(userEmail.text, forKey: "userEmail")
     }
     
     // MARK: - Search tag articles
@@ -108,36 +131,32 @@ class ViewController: UIViewController {
         
         ref.child("posts").queryOrdered(byChild: "表特").queryEqual(toValue: true).observeSingleEvent(of: .value) { (snapshot) in
             let value = snapshot.value as? NSDictionary
-//            guard let valueKey = value?.allKeys[0] as? String else { return }
-//            let userValue = value?[valueKey] as? NSDictionary
-//            let dataValue = userValue!["name"]! as? String
+            //            guard let valueKey = value?.allKeys[0] as? String else { return }
+            //            let userValue = value?[valueKey] as? NSDictionary
+            //            let dataValue = userValue!["name"]! as? String
             print(value)
         }
     }
     
-    func updateData() {
+    func postArticle(title title: String, content content: String, tag tag: String, time time: String) {
         let key = ref.child("posts").childByAutoId().key
-        let user = ["id": "4521h93h8f92h", "name": "Taihsin"]
-        let post = ["article_content": "1234567890",
-                    "article_id": "4567",
-                    "article_tag": ["表特": true],
-                    "article_title": "midnight desert time", "author": user, "created_time": "2018_9_19" ] as [String : Any]
+        guard let userId = UserManager.shared.getUserId() else { return }
+        guard let userName = UserManager.shared.getUserName() else { return }
+        let createdTime = ServerValue.timestamp()
+        print(createdTime)
+        
+        let post = ["article_title": title,
+                    "article_content": content,
+                    "article_tag": tag,
+                    "author_id": userId,
+                    "author_name": userName,
+                    "created_time": time ] as [String : Any]
         let childUpdates = ["/posts/\(key)": post]
+        
         ref.updateChildValues(childUpdates)
     }
     
     
-//    func updateData() {
-//        let key = ref.child("users").childByAutoId().key
-//        let post = ["uid": userID,
-//                    "author": username,
-//                    "title": title,
-//                    "body": body]
-//        let childUpdates = ["/posts/\(key)": post,
-//                            "/user-posts/\(userID)/\(key)/": post]
-//        ref.updateChildValues(childUpdates)
-//    }
-//
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
