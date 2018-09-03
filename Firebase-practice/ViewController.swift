@@ -25,8 +25,33 @@ class ViewController: UIViewController {
     @IBOutlet weak var friendsEmail: UITextField!
     @IBOutlet weak var friendsArticles: UIButton!
     @IBOutlet weak var addFriendButton: UIButton!
+    @IBOutlet weak var tagArticles: UIButton!
     
-    @IBAction func switchTag(_ sender: UISegmentedControl) {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        ref = Database.database().reference()
+        
+        //        searchUser(byEmail: "peterlee0466@gmail.com")
+        //        updateData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        cornerRadius()
+    }
+    
+    @IBAction func createUser(_ sender: Any) {
+        createUser()
+        
+        // Reset user data
+        
+        userName.text = ""
+        userEmail.text = ""
+    }
+    
+    @IBAction func getTagArticles(_ sender: UISegmentedControl) {
         switch sender.selectedSegmentIndex {
         case 0:
             getTagData(byTag: "表特")
@@ -68,28 +93,7 @@ class ViewController: UIViewController {
     @IBAction func showFriendsArticles(_ sender: Any) {
     }
     
-    @IBAction func createUser(_ sender: Any) {
-        createUser()
-        
-        // Reset user data
-        
-        userName.text = ""
-        userEmail.text = ""
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        ref = Database.database().reference()
-        
-//        searchUser(byEmail: "peterlee0466@gmail.com")
-//        updateData()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        cornerRadius()
+    @IBAction func getFriendsTagArticles(_ sender: Any) {
     }
     
     func cornerRadius() {
@@ -173,4 +177,20 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 }
+
+/* Todo:
+ wait for discuss
+ 1. time format
+ 2. database structure (naming, format...)
+ 3. tag name
+ 4. add friend function 
+ 
+ - Add friends
+ - get friends all articles
+ - get friends specific tag's articles
+ - Add showAlert with empty input
+*/
+
+
+
 
