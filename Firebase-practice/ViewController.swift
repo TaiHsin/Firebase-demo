@@ -56,8 +56,8 @@ class ViewController: UIViewController {
         default: break
         }
         
-        // MARK: - Reset article title and content
-        
+        // Reset article data
+    
         articleTitle.text = ""
         articleContent.text = ""
     }
@@ -70,6 +70,9 @@ class ViewController: UIViewController {
     
     @IBAction func createUser(_ sender: Any) {
         createUser()
+        
+        // Reset user data
+        
         userName.text = ""
         userEmail.text = ""
     }
@@ -103,7 +106,7 @@ class ViewController: UIViewController {
         let uid = ref.child("users").childByAutoId().key
         self.ref.child("users").child(uid).setValue(["email": userEmail.text , "name": userName.text])
         
-        // Mark: - Save userdata to singleton
+        // Save userdata to singleton
         
         UserDefaults.standard.set(uid, forKey: "userId")
         UserDefaults.standard.set(userName.text, forKey: "userName")
@@ -160,9 +163,9 @@ class ViewController: UIViewController {
                     "author_id": userId,
                     "author_name": userName,
                     "created_time": time ] as [String : Any]
-        let childUpdates = ["/posts/\(key)": post]
+        let postUpdates = ["/posts/\(key)": post]
         
-        ref.updateChildValues(childUpdates)
+        ref.updateChildValues(postUpdates)
     }
     
     override func didReceiveMemoryWarning() {
