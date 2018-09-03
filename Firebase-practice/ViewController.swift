@@ -102,6 +102,7 @@ class ViewController: UIViewController {
         postArticleButton.layer.cornerRadius = 5
         addFriendButton.layer.cornerRadius = 5
         friendsArticles.layer.cornerRadius = 5
+        tagArticles.layer.cornerRadius = 5
     }
     
     // MARK: - Create user data
@@ -188,6 +189,9 @@ class ViewController: UIViewController {
  - Add friends
  - get friends all articles
  - get friends specific tag's articles
+ 
+ - Improve UI layout
+ - Placeholder in text view
  - Add showAlert with empty input
 */
 
