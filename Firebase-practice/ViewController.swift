@@ -253,9 +253,8 @@ extension ViewController {
     func showAlertWith(userId: String, friendKey: String, name: String) {
         let alerController = UIAlertController(title: "New friend", message: "\(name) send you a friend request!" , preferredStyle: .alert)
         alerController.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
-            
-            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": false])
-            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": false])
+            self.ref.child("/users/\(userId)/contact/\(friendKey)").setValue(nil)
+            self.ref.child("/users/\(friendKey)/contact/\(userId)").setValue(nil)
         }))
         alerController.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
             
