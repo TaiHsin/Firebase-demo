@@ -54,6 +54,15 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         cornerRadius()
     }
+
+    func cornerRadius() {
+        createButton.layer.cornerRadius = 5
+        articleContent.layer.cornerRadius = 5
+        postArticleButton.layer.cornerRadius = 5
+        addFriendButton.layer.cornerRadius = 5
+        friendsArticles.layer.cornerRadius = 5
+        tagArticles.layer.cornerRadius = 5
+    }
     
     @IBAction func createUser(_ sender: Any) {
         createUser()
@@ -78,8 +87,6 @@ class ViewController: UIViewController {
         let tag = segmentControl.titleForSegment(at: segmentControl.selectedSegmentIndex)
         guard let tagName = tag else { return }
         
-        getTagData(byTag: tagName)
-        
         postArticle(title: title, content: content, tag: tagName, time: "20180904")
         
         // Reset article data
@@ -87,6 +94,8 @@ class ViewController: UIViewController {
         articleTitle.text = ""
         articleContent.text = ""
     }
+    
+    // MARK: - Search friend's mail and invide as friend
     
     @IBAction func addFriends(_ sender: Any) {
         guard let email = friendsEmailText.text else { return }
@@ -103,7 +112,6 @@ class ViewController: UIViewController {
             guard let valueKey = value?.allKeys[0] as? String else {
                 return
             }
-            
             self.ref.updateChildValues(["/users/\(valueKey)/contact/\(userId)": "待接受"])
             self.ref.updateChildValues(["/users/\(userId)/contact/\(valueKey)": "待邀請"])
             
@@ -127,11 +135,15 @@ class ViewController: UIViewController {
                 print(value as Any)
             })
         }
+        friendsEmailText.text = ""
     }
     
-    // MARK: - Get friends certain tag's articles (Not yet!!!)
+    // MARK: - Get friends certain tag's articles
     
     @IBAction func getFriendsTagArticles(_ sender: Any) {
+        let tag = segmentControl.titleForSegment(at: segmentControl.selectedSegmentIndex)
+        guard let tagName = tag else { return }
+        
         guard let email = friendsEmailText.text else { return }
         ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
             
@@ -140,21 +152,24 @@ class ViewController: UIViewController {
                 return
             }
             print(value)
+
             self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
-                
                 let value = snapshot.value as? NSDictionary
+                
+                guard let valueArray = value?.allValues else { return }
                 print(value as Any)
+                
+                for item in valueArray {
+                    guard let dictData = item as? [String: Any] else { return }
+                    let tag = dictData["article_tag"] as? String
+                    if tag == tagName {
+                        print(tag)
+                        print(item)
+                    }
+                }
             })
         }
-    }
-    
-    func cornerRadius() {
-        createButton.layer.cornerRadius = 5
-        articleContent.layer.cornerRadius = 5
-        postArticleButton.layer.cornerRadius = 5
-        addFriendButton.layer.cornerRadius = 5
-        friendsArticles.layer.cornerRadius = 5
-        tagArticles.layer.cornerRadius = 5
+        friendsEmailText.text = ""
     }
     
     // MARK: - Create user data
@@ -249,11 +264,8 @@ extension ViewController {
 
 /* Todo:
  wait for discuss
- 1. tage format
- 2. add friend function
- 3. time format
+ 1. time format
  
- - Add friends
  - get friends all articles
  - get friends specific tag's articles
  
