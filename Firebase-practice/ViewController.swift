@@ -53,7 +53,7 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         cornerRadius()
         guard let email = UserManager.shared.getUserEmail() else { return }
-        if email == "" || email == nil {
+        if email == "" {
             userName.isUserInteractionEnabled = true
             userEmail.isUserInteractionEnabled = true
         } else {
@@ -73,7 +73,7 @@ class ViewController: UIViewController {
         allArticles.layer.cornerRadius = 5
         resetButton.layer.cornerRadius = 5
     }
-   
+    
     @IBAction func createUser(_ sender: Any) {
         
         createUser()
@@ -95,7 +95,7 @@ class ViewController: UIViewController {
         
         getTagData(byTag: tagName)
     }
-
+    
     @IBAction func postArticle(_ sender: Any) {
         guard let title = articleTitle.text else { return }
         guard let content = articleContent.text else { return }
@@ -104,7 +104,7 @@ class ViewController: UIViewController {
         guard let tagName = tag else { return }
         
         postArticle(title: title, content: content, tag: tagName, time: "20180904")
- 
+        
         articleTitle.text = ""
         articleContent.text = ""
     }
@@ -122,13 +122,21 @@ class ViewController: UIViewController {
                 print("User doesn't exist!")
                 return
             }
-            
+
             guard let valueKey = value?.allKeys[0] as? String else {
                 return
             }
-            self.ref.updateChildValues(["/users/\(valueKey)/contact/\(userId)": "待接受"])
-            self.ref.updateChildValues(["/users/\(userId)/contact/\(valueKey)": "待邀請"])
             
+            self.ref.child("users").child(userId).child("contact").child(valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
+                print(snapshot)
+                if snapshot.key == valueKey {
+                    self.showFriendMessege()
+                    return
+                } else {
+                    self.ref.updateChildValues(["/users/\(valueKey)/contact/\(userId)": "待接受"])
+                    self.ref.updateChildValues(["/users/\(userId)/contact/\(valueKey)": "待邀請"])
+                }
+            })
             self.friendsEmailText.text = ""
         }
     }
@@ -165,13 +173,11 @@ class ViewController: UIViewController {
             guard let valueKey = value?.allKeys[0] as? String else {
                 return
             }
-            print(value)
             
             self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
                 let value = snapshot.value as? NSDictionary
                 
                 guard let valueArray = value?.allValues else { return }
-                print(value as Any)
                 
                 for item in valueArray {
                     guard let dictionaryData = item as? [String: Any] else { return }
@@ -191,7 +197,7 @@ class ViewController: UIViewController {
     func createUser() {
         let uid = ref.child("users").childByAutoId().key
         self.ref.child("users").child(uid).setValue(["email": userEmail.text , "name": userName.text])
-
+        
         UserDefaults.standard.set(uid, forKey: "userId")
         UserDefaults.standard.set(userName.text, forKey: "userName")
         UserDefaults.standard.set(userEmail.text, forKey: "userEmail")
@@ -226,7 +232,7 @@ class ViewController: UIViewController {
         let key = ref.child("posts").childByAutoId().key
         guard let userId = UserManager.shared.getUserId() else { return }
         guard let userName = UserManager.shared.getUserName() else { return }
-    
+        
         let date = Date()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMddHHmm"
@@ -251,16 +257,22 @@ class ViewController: UIViewController {
 extension ViewController {
     
     func showAlertWith(userId: String, friendKey: String, name: String) {
-        let alerController = UIAlertController(title: "New friend", message: "\(name) send you a friend request!" , preferredStyle: .alert)
-        alerController.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
+        let alert = UIAlertController(title: "You got a new friend!", message: "\(name) send you a friend request!" , preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
             self.ref.child("/users/\(userId)/contact/\(friendKey)").setValue(nil)
             self.ref.child("/users/\(friendKey)/contact/\(userId)").setValue(nil)
         }))
-        alerController.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
+        alert.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
             
             self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": true])
             self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": true])
         }))
-        self.present(alerController, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func showFriendMessege() {
+        let alertController = UIAlertController(title: "Oops...", message: "Friend already exist!", preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alertController, animated: true, completion: nil)
     }
 }
