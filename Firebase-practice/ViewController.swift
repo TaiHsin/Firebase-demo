@@ -29,19 +29,11 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         ref = Database.database().reference()
-        
-        
-        
-//        getTagData(byTag: "test")
-        //        searchUser(byEmail: "peterlee0466@gmail.com")
-        //        updateData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         cornerRadius()
     }
     
@@ -90,15 +82,11 @@ class ViewController: UIViewController {
             guard let valueKey = value?.allKeys[0] as? String else {
                 return
             }
-            let addContext = [userId: "待接受"] as [String : Any]
-            let updates = ["/users/\(valueKey)/contact": addContext]
             
-            self.ref.updateChildValues(updates)
+            self.ref.updateChildValues(["/users/\(valueKey)/contact/\(userId)": "待接受"])
             self.ref.updateChildValues(["/users/\(userId)/contact/\(valueKey)": "待邀請"])
             
-            //            guard let valueKey = value?.allKeys[0] as? String else { return }
-            //            let userValue = value?[valueKey] as? NSDictionary
-            //            let dataValue = userValue!["name"]! as? String
+            self.friendsEmailText.text = ""
         }
     }
     
@@ -106,17 +94,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func getFriendsTagArticles(_ sender: Any) {
-//        switch sender.selectedSegmentIndex {
-//        case 0:
-//
-//        case 1:
-//
-//        case 2:
-//
-//        case 3:
-//            
-//        default: break
-//        }
+
     }
     
     func cornerRadius() {
