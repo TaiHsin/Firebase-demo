@@ -231,7 +231,7 @@ class ViewController: UIViewController {
     
         let date = Date()
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = " yyyyMMddHHmm"
+        dateFormatter.dateFormat = "yyyyMMddHHmm"
         let time = dateFormatter.string(from: date)
         print(time)
         
@@ -254,34 +254,21 @@ class ViewController: UIViewController {
 }
 
 // MARK: - Show alert with new friends request
+
 extension ViewController {
     
     func showAlertWith(userId: String, friendKey: String, name: String) {
         let alerController = UIAlertController(title: "New friend", message: "\(name) send you a friend request!" , preferredStyle: .alert)
         alerController.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
-            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": false])
-            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": false])
+            
+            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": nil])
+            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": nil])
         }))
         alerController.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
+            
             self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": true])
             self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": true])
         }))
         self.present(alerController, animated: true, completion: nil)
     }
 }
-
-/* Todo:
- wait for discuss
- 1. time format
- 
- - get friends all articles
- - get friends specific tag's articles
- 
- - Improve UI layout
- - Placeholder in text view
- - Add showAlert with empty input
- */
-
-
-
-
