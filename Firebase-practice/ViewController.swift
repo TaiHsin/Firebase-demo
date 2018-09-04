@@ -13,7 +13,7 @@ import FirebaseDatabase
 class ViewController: UIViewController {
     
     var ref: DatabaseReference!
-    
+    var tag: String?
     
     @IBOutlet weak var userName: UITextField!
     @IBOutlet weak var userEmail: UITextField!
@@ -22,7 +22,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var articleTitle: UITextField!
     @IBOutlet weak var articleContent: UITextView!
     @IBOutlet weak var postArticleButton: UIButton!
-    @IBOutlet weak var friendsEmail: UITextField!
+    @IBOutlet weak var friendsEmailText: UITextField!
     @IBOutlet weak var friendsArticles: UIButton!
     @IBOutlet weak var addFriendButton: UIButton!
     @IBOutlet weak var tagArticles: UIButton!
@@ -32,6 +32,9 @@ class ViewController: UIViewController {
         
         ref = Database.database().reference()
         
+        
+        
+//        getTagData(byTag: "test")
         //        searchUser(byEmail: "peterlee0466@gmail.com")
         //        updateData()
     }
@@ -52,48 +55,68 @@ class ViewController: UIViewController {
     }
     
     @IBAction func getTagArticles(_ sender: UISegmentedControl) {
-        switch sender.selectedSegmentIndex {
-        case 0:
-            getTagData(byTag: "表特")
-        case 1:
-            getTagData(byTag: "八卦")
-        case 2:
-            getTagData(byTag: "就可")
-        case 3:
-            getTagData(byTag: "生活")
-        default: break
-        }
+        tag = sender.titleForSegment(at: sender.selectedSegmentIndex)
+        guard let tag = tag else { return }
+        
+        getTagData(byTag: tag)
     }
     
     @IBAction func postArticle(_ sender: Any) {
         guard let title = articleTitle.text else { return }
         guard let content = articleContent.text else { return }
+        guard let tag = tag else { return }
         
-        switch segmentControl.selectedSegmentIndex {
-        case 0:
-            postArticle(title: title, content: content, tag: "表特", time: "20180904")
-        case 1:
-            postArticle(title: title, content: content, tag: "八卦", time: "20180904")
-        case 2:
-            postArticle(title: title, content: content, tag: "就可", time: "20180904")
-        case 3:
-            postArticle(title: title, content: content, tag: "生活", time: "20180904")
-        default: break
-        }
+        postArticle(title: title, content: content, tag: tag, time: "20180904")
         
-        // Reset article data
+         // Reset article data
     
         articleTitle.text = ""
         articleContent.text = ""
     }
     
     @IBAction func addFriends(_ sender: Any) {
+        guard let email = friendsEmailText.text else { return }
+        guard let userId = UserManager.shared.getUserId() else { return }
+        guard let userEmail = UserManager.shared.getUserEmail() else { return }
+        
+        ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
+            let value = snapshot.value as? NSDictionary
+                        print(value)
+            guard value != nil else {
+                print("No such user!")
+                return
+            }
+            
+            guard let valueKey = value?.allKeys[0] as? String else {
+                return
+            }
+            let addContext = [userId: "待接受"] as [String : Any]
+            let updates = ["/users/\(valueKey)/contact": addContext]
+            
+            self.ref.updateChildValues(updates)
+            self.ref.updateChildValues(["/users/\(userId)/contact/\(valueKey)": "待邀請"])
+            
+            //            guard let valueKey = value?.allKeys[0] as? String else { return }
+            //            let userValue = value?[valueKey] as? NSDictionary
+            //            let dataValue = userValue!["name"]! as? String
+        }
     }
     
     @IBAction func showFriendsArticles(_ sender: Any) {
     }
     
     @IBAction func getFriendsTagArticles(_ sender: Any) {
+//        switch sender.selectedSegmentIndex {
+//        case 0:
+//
+//        case 1:
+//
+//        case 2:
+//
+//        case 3:
+//            
+//        default: break
+//        }
     }
     
     func cornerRadius() {
@@ -121,7 +144,7 @@ class ViewController: UIViewController {
     // MARK: - Search tag articles
     
     func getTagData(byTag tag: String) {
-        ref.child("posts").queryOrdered(byChild: "tag").queryEqual(toValue: tag).observeSingleEvent(of: .value) { (snapshot) in
+        ref.child("posts").queryOrdered(byChild: "article_tag").queryEqual(toValue: tag).observeSingleEvent(of: .value) { (snapshot) in
         
             let value = snapshot.value as? NSDictionary
             print(value)
@@ -144,27 +167,22 @@ class ViewController: UIViewController {
     // MARK: - Search data by some value or child key
     
     func searchUser(byEmail email: String) {
-        ref.child("posts").queryOrdered(byChild: "email").queryEqual(toValue: true).observeSingleEvent(of: .value) { (snapshot) in
-            let value = snapshot.value as? NSDictionary
-            //            guard let valueKey = value?.allKeys[0] as? String else { return }
-            //            let userValue = value?[valueKey] as? NSDictionary
-            //            let dataValue = userValue!["name"]! as? String
-            print(value)
-        }
+ 
     }
     
     // MARK: - Use update to post new article
     
-    func postArticle(title title: String, content content: String, tag tag: String, time time: String) {
+    func postArticle(title: String, content: String, tag: String, time: String) {
         let key = ref.child("posts").childByAutoId().key
         guard let userId = UserManager.shared.getUserId() else { return }
         guard let userName = UserManager.shared.getUserName() else { return }
         
         let createdTime = ServerValue.timestamp()
-//        print(createdTime)
-        let post = ["title": title,
-                    "content": content,
-                    "tag": tag,
+
+        let post = ["article_id": key,
+                    "article_title": title,
+                    "article_content": content,
+                    "article_tag": tag,
                     "author_id": userId,
                     "author_name": userName,
                     "created_time": time ] as [String : Any]
@@ -172,6 +190,10 @@ class ViewController: UIViewController {
         
         ref.updateChildValues(postUpdates)
     }
+    
+//    func getTime() {
+//        let date = Date()
+//    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -181,10 +203,9 @@ class ViewController: UIViewController {
 
 /* Todo:
  wait for discuss
- 1. time format
- 2. database structure (naming, format...)
- 3. tag name
- 4. add friend function 
+ 1. tage format
+ 2. add friend function
+ 3. time format
  
  - Add friends
  - get friends all articles
