@@ -25,6 +25,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var friendsArticles: UIButton!
     @IBOutlet weak var addFriendButton: UIButton!
     @IBOutlet weak var tagArticles: UIButton!
+    @IBOutlet weak var allArticles: UIButton!
+    @IBOutlet weak var resetButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,8 +52,8 @@ class ViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         cornerRadius()
-                guard let email = UserManager.shared.getUserEmail() else { return }
-        if email == "" {
+        guard let email = UserManager.shared.getUserEmail() else { return }
+        if email == "" || email == nil {
             userName.isUserInteractionEnabled = true
             userEmail.isUserInteractionEnabled = true
         } else {
@@ -59,7 +61,6 @@ class ViewController: UIViewController {
             userName.isUserInteractionEnabled = false
             userEmail.isUserInteractionEnabled = false
         }
-    
     }
     
     func cornerRadius() {
@@ -69,25 +70,32 @@ class ViewController: UIViewController {
         addFriendButton.layer.cornerRadius = 5
         friendsArticles.layer.cornerRadius = 5
         tagArticles.layer.cornerRadius = 5
+        allArticles.layer.cornerRadius = 5
+        resetButton.layer.cornerRadius = 5
     }
-    
+   
     @IBAction func createUser(_ sender: Any) {
         
         createUser()
-    
-        // Reset user data
         
         userName.text = ""
         userEmail.text = ""
     }
     
-    @IBAction func getTagArticles(_ sender: UISegmentedControl) {
-        let tag = sender.titleForSegment(at: sender.selectedSegmentIndex)
+    @IBAction func resetUser(_ sendor: Any) {
+        let userDefaults = UserDefaults.standard
+        userDefaults.removeObject(forKey: "userId")
+        userDefaults.removeObject(forKey: "userName")
+        userDefaults.removeObject(forKey: "userEmail")
+    }
+    
+    @IBAction func getAllArticles(_ sender: Any) {
+        let tag = segmentControl.titleForSegment(at: segmentControl.selectedSegmentIndex)
         guard let tagName = tag else { return }
         
         getTagData(byTag: tagName)
     }
-    
+
     @IBAction func postArticle(_ sender: Any) {
         guard let title = articleTitle.text else { return }
         guard let content = articleContent.text else { return }
@@ -96,9 +104,7 @@ class ViewController: UIViewController {
         guard let tagName = tag else { return }
         
         postArticle(title: title, content: content, tag: tagName, time: "20180904")
-        
-        // Reset article data
-        
+ 
         articleTitle.text = ""
         articleContent.text = ""
     }
@@ -185,9 +191,7 @@ class ViewController: UIViewController {
     func createUser() {
         let uid = ref.child("users").childByAutoId().key
         self.ref.child("users").child(uid).setValue(["email": userEmail.text , "name": userName.text])
-        
-        // Save userdata to singleton
-        
+
         UserDefaults.standard.set(uid, forKey: "userId")
         UserDefaults.standard.set(userName.text, forKey: "userName")
         UserDefaults.standard.set(userEmail.text, forKey: "userEmail")
@@ -216,12 +220,6 @@ class ViewController: UIViewController {
         }
     }
     
-    // MARK: - Search data by some value or child key
-    
-    func searchUser(byEmail email: String) {
-        
-    }
-    
     // MARK: - Use update to post new article
     
     func postArticle(title: String, content: String, tag: String, time: String) {
@@ -246,11 +244,6 @@ class ViewController: UIViewController {
         
         ref.updateChildValues(postUpdates)
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
 }
 
 // MARK: - Show alert with new friends request
@@ -261,8 +254,8 @@ extension ViewController {
         let alerController = UIAlertController(title: "New friend", message: "\(name) send you a friend request!" , preferredStyle: .alert)
         alerController.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
             
-            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": nil])
-            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": nil])
+            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": false])
+            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": false])
         }))
         alerController.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
             
