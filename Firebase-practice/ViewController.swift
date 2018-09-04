@@ -13,7 +13,6 @@ import FirebaseDatabase
 class ViewController: UIViewController {
     
     var ref: DatabaseReference!
-    var tag: String?
     
     @IBOutlet weak var userName: UITextField!
     @IBOutlet weak var userEmail: UITextField!
@@ -30,6 +29,25 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         ref = Database.database().reference()
+        
+        guard let userId = UserManager.shared.getUserId() else { return }
+        ref.child("users").child(userId).child("contact").observe(.childAdded) { (snapshot) in
+            print(snapshot)
+            print(snapshot.key)
+            print(snapshot.value)
+            let friendKey = snapshot.key
+            
+            guard let value = snapshot.value as? String else { return }
+            if value == "待邀請"{
+                return
+            } else if value == "待接受" {
+                self.ref.child("users").child(snapshot.key).child("name").observeSingleEvent(of: .value, with: { (snapshot) in
+                    print(snapshot.value)
+                    guard let name = snapshot.value as? String else { return }
+                    self.showAlertWith(userId: userId, friendKey: friendKey, name: name)
+                })
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -47,21 +65,25 @@ class ViewController: UIViewController {
     }
     
     @IBAction func getTagArticles(_ sender: UISegmentedControl) {
-        tag = sender.titleForSegment(at: sender.selectedSegmentIndex)
-        guard let tag = tag else { return }
+        let tag = sender.titleForSegment(at: sender.selectedSegmentIndex)
+        guard let tagName = tag else { return }
         
-        getTagData(byTag: tag)
+        getTagData(byTag: tagName)
     }
     
     @IBAction func postArticle(_ sender: Any) {
         guard let title = articleTitle.text else { return }
         guard let content = articleContent.text else { return }
-        guard let tag = tag else { return }
         
-        postArticle(title: title, content: content, tag: tag, time: "20180904")
+        let tag = segmentControl.titleForSegment(at: segmentControl.selectedSegmentIndex)
+        guard let tagName = tag else { return }
         
-         // Reset article data
-    
+        getTagData(byTag: tagName)
+        
+        postArticle(title: title, content: content, tag: tagName, time: "20180904")
+        
+        // Reset article data
+        
         articleTitle.text = ""
         articleContent.text = ""
     }
@@ -69,13 +91,12 @@ class ViewController: UIViewController {
     @IBAction func addFriends(_ sender: Any) {
         guard let email = friendsEmailText.text else { return }
         guard let userId = UserManager.shared.getUserId() else { return }
-        guard let userEmail = UserManager.shared.getUserEmail() else { return }
         
         ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
             let value = snapshot.value as? NSDictionary
-                        print(value)
+            print(value as Any)
             guard value != nil else {
-                print("No such user!")
+                print("User doesn't exist!")
                 return
             }
             
@@ -93,7 +114,7 @@ class ViewController: UIViewController {
     // MARK: - Get friends all articles
     
     @IBAction func showFriendsArticles(_ sender: Any) {
-                guard let email = friendsEmailText.text else { return }
+        guard let email = friendsEmailText.text else { return }
         ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
             
             let value = snapshot.value as? NSDictionary
@@ -108,7 +129,7 @@ class ViewController: UIViewController {
         }
     }
     
-    // MARK: - Get friends certain tag's articles
+    // MARK: - Get friends certain tag's articles (Not yet!!!)
     
     @IBAction func getFriendsTagArticles(_ sender: Any) {
         guard let email = friendsEmailText.text else { return }
@@ -118,6 +139,7 @@ class ViewController: UIViewController {
             guard let valueKey = value?.allKeys[0] as? String else {
                 return
             }
+            print(value)
             self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
                 
                 let value = snapshot.value as? NSDictionary
@@ -152,7 +174,7 @@ class ViewController: UIViewController {
     
     func getTagData(byTag tag: String) {
         ref.child("posts").queryOrdered(byChild: "article_tag").queryEqual(toValue: tag).observeSingleEvent(of: .value) { (snapshot) in
-        
+            
             let value = snapshot.value as? NSDictionary
             print(value)
         }
@@ -174,7 +196,7 @@ class ViewController: UIViewController {
     // MARK: - Search data by some value or child key
     
     func searchUser(byEmail email: String) {
- 
+        
     }
     
     // MARK: - Use update to post new article
@@ -185,7 +207,7 @@ class ViewController: UIViewController {
         guard let userName = UserManager.shared.getUserName() else { return }
         
         let createdTime = ServerValue.timestamp()
-
+        
         let post = ["article_id": key,
                     "article_title": title,
                     "article_content": content,
@@ -198,13 +220,30 @@ class ViewController: UIViewController {
         ref.updateChildValues(postUpdates)
     }
     
-//    func getTime() {
-//        let date = Date()
-//    }
+    //    func getTime() {
+    //        let date = Date()
+    //    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+}
+
+// MARK: - Show alert with new friends request
+extension ViewController {
+    
+    func showAlertWith(userId: String, friendKey: String, name: String) {
+        let alerController = UIAlertController(title: "New friend", message: "\(name) send you a friend request!" , preferredStyle: .alert)
+        alerController.addAction(UIAlertAction(title: "Reject", style: .default, handler: { (_) in
+            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": false])
+            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": false])
+        }))
+        alerController.addAction(UIAlertAction(title: "Accept", style: .default, handler: { (_) in
+            self.ref.updateChildValues(["/users/\(userId)/contact/\(friendKey)": true])
+            self.ref.updateChildValues(["/users/\(friendKey)/contact/\(userId)": true])
+        }))
+        self.present(alerController, animated: true, completion: nil)
     }
 }
 
@@ -221,7 +260,7 @@ class ViewController: UIViewController {
  - Improve UI layout
  - Placeholder in text view
  - Add showAlert with empty input
-*/
+ */
 
 
 
