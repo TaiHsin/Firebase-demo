@@ -90,11 +90,40 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: - Get friends all articles
+    
     @IBAction func showFriendsArticles(_ sender: Any) {
+                guard let email = friendsEmailText.text else { return }
+        ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
+            
+            let value = snapshot.value as? NSDictionary
+            guard let valueKey = value?.allKeys[0] as? String else {
+                return
+            }
+            self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
+                
+                let value = snapshot.value as? NSDictionary
+                print(value as Any)
+            })
+        }
     }
     
+    // MARK: - Get friends certain tag's articles
+    
     @IBAction func getFriendsTagArticles(_ sender: Any) {
-
+        guard let email = friendsEmailText.text else { return }
+        ref.child("users").queryOrdered(byChild: "email").queryEqual(toValue: email).observeSingleEvent(of: .value) { (snapshot) in
+            
+            let value = snapshot.value as? NSDictionary
+            guard let valueKey = value?.allKeys[0] as? String else {
+                return
+            }
+            self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
+                
+                let value = snapshot.value as? NSDictionary
+                print(value as Any)
+            })
+        }
     }
     
     func cornerRadius() {
