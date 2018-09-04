@@ -32,9 +32,6 @@ class ViewController: UIViewController {
         
         guard let userId = UserManager.shared.getUserId() else { return }
         ref.child("users").child(userId).child("contact").observe(.childAdded) { (snapshot) in
-            print(snapshot)
-            print(snapshot.key)
-            print(snapshot.value)
             let friendKey = snapshot.key
             
             guard let value = snapshot.value as? String else { return }
@@ -53,8 +50,18 @@ class ViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         cornerRadius()
+                guard let email = UserManager.shared.getUserEmail() else { return }
+        if email == "" {
+            userName.isUserInteractionEnabled = true
+            userEmail.isUserInteractionEnabled = true
+        } else {
+            createButton.isHidden = true
+            userName.isUserInteractionEnabled = false
+            userEmail.isUserInteractionEnabled = false
+        }
+    
     }
-
+    
     func cornerRadius() {
         createButton.layer.cornerRadius = 5
         articleContent.layer.cornerRadius = 5
@@ -65,8 +72,9 @@ class ViewController: UIViewController {
     }
     
     @IBAction func createUser(_ sender: Any) {
-        createUser()
         
+        createUser()
+    
         // Reset user data
         
         userName.text = ""
@@ -152,7 +160,7 @@ class ViewController: UIViewController {
                 return
             }
             print(value)
-
+            
             self.ref.child("posts").queryOrdered(byChild: "author_id").queryEqual(toValue: valueKey).observeSingleEvent(of: .value, with: { (snapshot) in
                 let value = snapshot.value as? NSDictionary
                 
@@ -160,8 +168,8 @@ class ViewController: UIViewController {
                 print(value as Any)
                 
                 for item in valueArray {
-                    guard let dictData = item as? [String: Any] else { return }
-                    let tag = dictData["article_tag"] as? String
+                    guard let dictionaryData = item as? [String: Any] else { return }
+                    let tag = dictionaryData["article_tag"] as? String
                     if tag == tagName {
                         print(tag)
                         print(item)
@@ -220,8 +228,12 @@ class ViewController: UIViewController {
         let key = ref.child("posts").childByAutoId().key
         guard let userId = UserManager.shared.getUserId() else { return }
         guard let userName = UserManager.shared.getUserName() else { return }
-        
-        let createdTime = ServerValue.timestamp()
+    
+        let date = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = " yyyyMMddHHmm"
+        let time = dateFormatter.string(from: date)
+        print(time)
         
         let post = ["article_id": key,
                     "article_title": title,
@@ -234,10 +246,6 @@ class ViewController: UIViewController {
         
         ref.updateChildValues(postUpdates)
     }
-    
-    //    func getTime() {
-    //        let date = Date()
-    //    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
